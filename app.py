@@ -3,7 +3,6 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
-
 st.set_page_config(page_title="Читалища в България (1980-2000)", layout="wide")
 
 
@@ -57,10 +56,14 @@ code_fix = {
 df_all["okrug"] = df_all["okrug"].replace(name_fix)
 df_all["region_code"] = df_all["region_code"].replace(code_fix)
 
-# working dataframe for maps etc. – exclude national total
+# ---------- ДАННИ ЗА ОСНОВНАТА КАРТА (оригинална логика) ----------
 df = df_all[df_all["region_code"] != "BG"].copy()
 
-# ---- MAP 28 окръга към 8 макрорегиона (примерен mapping – нагласи по твоите кодове) ----
+# ако admin_type липсва – 28-окръжен режим по подразбиране
+if "admin_type" not in df.columns:
+    df["admin_type"] = "okrug28"
+
+# ---------- ДАННИ ЗА HEATMAP (агрегирани 28→8) ----------
 region_to_macro = {
     "BGS": "BGS",  # Бургас
     "SLV": "BGS",  # Сливен
@@ -89,22 +92,12 @@ region_to_macro = {
     "PER": "SFO",  # Перник
     "KNL": "SFO",  # Кюстендил
     "SFO": "SFO",  # София-област
+    "SOF": "SOF",  # София-град
 }
 
-# working dataframe for maps etc. – exclude national total
-df = df_all[df_all["region_code"] != "BG"].copy()
-
-# ако admin_type липсва – 28-окръжен режим по подразбиране
-if "admin_type" not in df.columns:
-    df["admin_type"] = "okrug28"
-
-# реално агрегиране до 8 макрорегиона
-df["macro_region_code"] = df["region_code"].map(region_to_macro)
-
-
-# if admin_type / macro_region_code don't exist yet, create trivial defaults
-if "admin_type" not in df.columns:
-    df["admin_type"] = "okrug28"
+df_heat = df_all[df_all["region_code"] != "BG"].copy()
+df_heat["macro_region_code"] = df_heat["region_code"].map(region_to_macro)
+df_heat = df_heat.dropna(subset=["macro_region_code"])
 
 st.title("Читалища - градове/села")
 
@@ -140,7 +133,7 @@ df_y["value"] = df_y[metric_col]
 # choose geometry and key per year/admin_type
 if (df_y["admin_type"] == "oblast9").all():
     geo = bg_geo_9
-    loc_col = "macro_region_code"
+    loc_col = "macro_region_code"  # при 9-областния shapefile колоната трябва да идва от CSV
 else:
     geo = bg_geo_28
     loc_col = "region_code"
@@ -156,7 +149,6 @@ tab_map, tab_visitors, tab_side, tab_peaks = st.tabs(
 
 # ---------- TAB 1: SIMPLE MAP ----------
 with tab_map:
-    # пояснение за показателя
     if metric_sel == "общо":
         metric_label = "общ брой читалища по области"
     elif metric_sel == "градове":
@@ -174,7 +166,7 @@ with tab_map:
 
 **Допълнителна информация**
 
-През 1978 г. с изменението и допълнението на Закона за народните съвети (1951 г.) територията на Народна република България е разделена на 28 окръга (включително София-град и София-окръг). Окръзите са управлявани от окръжни народни съвети. С административно-териториалната реформа от 1987 г. окръзите са ликвидирани и са създадени 8 области и Столична голяма община със статут на област.[[1]](https://bg.wikipedia.org/wiki/%D0%9E%D0%BA%D1%80%D1%8A%D0%B3#cite_note-1)
+През 1978 г. с изменението и допълнението на Закона за народните съвети (1951 г.) територията на Народна република България е разделена на 28 окръга (включително София-град и София-окръг). Окръзите са управлявани от окръжни народни съвети. С административно-териториалната реформа от 1987 г. окръзите са ликвидирани и са създадени 8 области и Столична голяма община със статут на област.[web:373]
         """
     )
 
@@ -440,7 +432,7 @@ with tab_peaks:
 
     # агрегиране на всички години до 8 области
     df_macro = (
-        df
+        df_heat
         .groupby(["macro_region_code", "year"], as_index=False)["chitalishta_total"]
         .sum()
     )
