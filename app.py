@@ -3,7 +3,6 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
-
 st.set_page_config(page_title="Читалища в България (1980-2000)", layout="wide")
 
 
@@ -96,10 +95,6 @@ region_to_macro = {
     "SOF": "SOF",  # София-град
 }
 
-# macro_region_code за 28-окръжния период (за side‑картите)
-df["macro_region_code"] = df["region_code"].map(region_to_macro)
-
-# отделно df за heatmap-а (агрегиране 28→8)
 df_heat = df_all[df_all["region_code"] != "BG"].copy()
 df_heat["macro_region_code"] = df_heat["region_code"].map(region_to_macro)
 df_heat = df_heat.dropna(subset=["macro_region_code"])
@@ -135,13 +130,13 @@ metric_col = metric_col_map[metric_sel]
 df_y = df[df["year"] == year_sel].copy()
 df_y["value"] = df_y[metric_col]
 
-# choose geometry and key per year/admin_type (главна карта)
+# choose geometry and key per year/admin_type
 if (df_y["admin_type"] == "oblast9").all():
     geo = bg_geo_9
-    loc_col_main = "macro_region_code"  # 9 области
+    loc_col = "macro_region_code"  # при 9-областния shapefile колоната трябва да идва от CSV
 else:
     geo = bg_geo_28
-    loc_col_main = "region_code"        # 28 окръга
+    loc_col = "region_code"
 
 # global min/max for fixed color scale across all years
 global_min = float(df[metric_col].min())
@@ -167,7 +162,7 @@ with tab_map:
         """
 **Важно за разделението на картата**
 
-Визуализацията на картата за периода 1980–1986 г. представя страната, разделена на 28 области, а за периода 1987–1997 г. – на 8 области. Статистически данните са представени така в годишниците на НСИ, а тези визуализации следват това административно-териториално деление с цел кохерентност на данните.[web:373]
+Визуализацията на картата за периода 1980–1986 г. представя страната, разделена на 28 области, а за периода 1987–1997 г. – на 8 области. Статистически данните са представени така в годишниците на НСИ, а тези визуализации следват това административно-териториално деление с цел кохерентност на данните.
 
 **Допълнителна информация**
 
@@ -178,7 +173,7 @@ with tab_map:
     fig = px.choropleth_mapbox(
         df_y,
         geojson=geo,          # 28 or 9
-        locations=loc_col_main,    # region_code or macro_region_code
+        locations=loc_col,    # region_code or macro_region_code
         featureidkey="properties.nuts3",  # adjust to your GeoJSON property
         color="value",
         hover_name="okrug",
@@ -229,14 +224,6 @@ with tab_side:
         horizontal=True,
     )
 
-    df_side = df_y.copy()
-
-    # loc_col за side-картите – същата логика като в главната карта
-    if (df_side["admin_type"] == "oblast9").all():
-        loc_col = "macro_region_code"
-    else:
-        loc_col = "region_code"
-
     def make_choropleth(
         data,
         value_col,
@@ -278,6 +265,8 @@ with tab_side:
             fig_local.update_layout(coloraxis=dict(cmid=midpoint))
         fig_local.update_layout(margin={"r": 0, "t": 40, "l": 0, "b": 0})
         return fig_local
+
+    df_side = df_y.copy()
 
     if view_mode == "Сравнение – паралелен изглед":
         shared_min = float(
