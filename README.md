@@ -49,8 +49,8 @@ https://chitalishta-app.streamlit.app/
 
   ```bash
   python -m venv .venv
-  source .venv/bin/activate   # Linux/macOS
-  # .venv\Scripts\activate    # Windows
+  source .venv/bin/activate
+
 
 3. Инсталирай зависимостите:
 
@@ -63,5 +63,8 @@ https://chitalishta-app.streamlit.app/
  streamlit run app.py
   
 След стартиране Streamlit ще отвори приложението в браузъра (обикновено на http://localhost:8501).
+
+
+
 
 
