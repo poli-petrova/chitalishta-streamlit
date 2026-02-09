@@ -98,7 +98,8 @@ df_y = df[df["year"] == year_sel].copy()
 df_y["value"] = df_y[metric_col]
 
 # choose geometry and key per year/admin_type
-if (df_y["admin_type"] == "oblast9").any():
+# искаш: 1980–1986 и 1999–2000 => 28 окръга; 1987–1998 => 8 области
+if (df_y["admin_type"] == "oblast9").all():
     geo = bg_geo_9
     loc_col = "macro_region_code"
 else:
