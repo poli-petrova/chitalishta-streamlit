@@ -60,11 +60,52 @@ df_all["region_code"] = df_all["region_code"].replace(code_fix)
 # working dataframe for maps etc. – exclude national total
 df = df_all[df_all["region_code"] != "BG"].copy()
 
+# ---- MAP 28 окръга към 8 макрорегиона (примерен mapping – нагласи по твоите кодове) ----
+region_to_macro = {
+    "BGS": "BGS",  # Бургас
+    "SLV": "BGS",  # Сливен
+    "JAM": "BGS",  # Ямбол
+    "MON": "MON",  # Монтана
+    "VID": "MON",  # Видин
+    "VRC": "MON",  # Враца
+    "VTR": "LOV",  # Велико Търново
+    "PVN": "LOV",  # Плевен
+    "LOV": "LOV",  # Ловеч
+    "GAB": "LOV",  # Габрово
+    "RSE": "RSE",  # Русе
+    "SLS": "RSE",  # Силистра
+    "RAZ": "RSE",  # Разград
+    "TGV": "RSE",  # Търговище
+    "VAR": "VAR",  # Варна
+    "DOB": "VAR",  # Добрич
+    "SHU": "VAR",  # Шумен
+    "HKV": "HKV",  # Хасково
+    "KRZ": "HKV",  # Кърджали
+    "SZR": "HKV",  # Стара Загора
+    "PDV": "PDV",  # Пловдив
+    "PAZ": "PDV",  # Пазарджик
+    "SML": "PDV",  # Смолян
+    "BLG": "SFO",  # Благоевград
+    "PER": "SFO",  # Перник
+    "KNL": "SFO",  # Кюстендил
+    "SFO": "SFO",  # София-област
+}
+
+# working dataframe for maps etc. – exclude national total
+df = df_all[df_all["region_code"] != "BG"].copy()
+
+# ако admin_type липсва – 28-окръжен режим по подразбиране
+if "admin_type" not in df.columns:
+    df["admin_type"] = "okrug28"
+
+# реално агрегиране до 8 макрорегиона
+df["macro_region_code"] = df["region_code"].map(region_to_macro)
+
+
 # if admin_type / macro_region_code don't exist yet, create trivial defaults
 if "admin_type" not in df.columns:
     df["admin_type"] = "okrug28"
-if "macro_region_code" not in df.columns:
-    df["macro_region_code"] = df["region_code"]
+s
 
 st.title("Читалища - градове/села")
 
@@ -98,7 +139,6 @@ df_y = df[df["year"] == year_sel].copy()
 df_y["value"] = df_y[metric_col]
 
 # choose geometry and key per year/admin_type
-# искаш: 1980–1986 и 1999–2000 => 28 окръга; 1987–1998 => 8 области
 if (df_y["admin_type"] == "oblast9").all():
     geo = bg_geo_9
     loc_col = "macro_region_code"
