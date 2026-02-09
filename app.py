@@ -105,7 +105,6 @@ df["macro_region_code"] = df["region_code"].map(region_to_macro)
 # if admin_type / macro_region_code don't exist yet, create trivial defaults
 if "admin_type" not in df.columns:
     df["admin_type"] = "okrug28"
-s
 
 st.title("Читалища - градове/села")
 
