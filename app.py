@@ -116,6 +116,16 @@ tab_map, tab_visitors, tab_side, tab_peaks = st.tabs(
 
 # ---------- TAB 1: SIMPLE MAP ----------
 with tab_map:
+    # пояснение за показателя
+    if metric_sel == "общо":
+        metric_label = "общ брой читалища по области"
+    elif metric_sel == "градове":
+        metric_label = "брой читалища в градовете по области"
+    else:
+        metric_label = "брой читалища в селата по области"
+
+    st.markdown(f"**Показател:** {metric_label.capitalize()} за избраната година.\n")
+
     st.markdown(
         """
 **Важно за разделението на картата**
@@ -127,7 +137,7 @@ with tab_map:
 През 1978 г. с изменението и допълнението на Закона за народните съвети (1951 г.) територията на Народна република България е разделена на 28 окръга (включително София-град и София-окръг). Окръзите са управлявани от окръжни народни съвети. С административно-териториалната реформа от 1987 г. окръзите са ликвидирани и са създадени 8 области и Столична голяма община със статут на област.[[1]](https://bg.wikipedia.org/wiki/%D0%9E%D0%BA%D1%80%D1%8A%D0%B3#cite_note-1)
         """
     )
-        
+
     fig = px.choropleth_mapbox(
         df_y,
         geojson=geo,          # 28 or 9
@@ -226,7 +236,7 @@ with tab_side:
 
     df_side = df_y.copy()
 
-    if view_mode == "Compare - side by side":
+    if view_mode == "Сравнение – паралелен изглед":
         shared_min = float(
             min(
                 df_side["chitalishta_cities"].min(),
@@ -266,7 +276,7 @@ with tab_side:
             )
             st.plotly_chart(fig_v, use_container_width=True)
 
-    elif view_mode == "Skew - difference":
+    elif view_mode == "Дисбаланс – абсолютна разлика":
         df_side["villages_minus_cities"] = (
             df_side["chitalishta_villages"] - df_side["chitalishta_cities"]
         )
@@ -291,7 +301,7 @@ with tab_side:
         )
         st.plotly_chart(fig_diff, use_container_width=True)
 
-    else:  # Skew - ratio
+    else:  # Дисбаланс – относително съотношение
         df_side["villages_over_cities"] = (
             (df_side["chitalishta_villages"] + 1)
             / (df_side["chitalishta_cities"] + 1)
@@ -377,6 +387,14 @@ with tab_peaks:
     )
     st.plotly_chart(fig_nat, use_container_width=True)
 
+    # пояснение за агрегирането към 8 области
+    st.markdown(
+        """
+Данните за периода 1980–2000 г. са агрегирани до 8 административни области,
+за да бъдат сравними във времето независимо от промяната от 28 към 8 окръга.
+"""
+    )
+
     # ---------- 4.2 Heatmap: 8 области, 1980–2000 ----------
     st.subheader("Топлинна карта: общ брой читалища по области (агрегирани до 8), 1980–2000")
 
@@ -416,7 +434,6 @@ with tab_peaks:
             )
     else:
         st.info("Няма данни за периода 1980–2000.")
-
 
     # ---------- 4.3 Peak info ----------
     st.subheader("Peak years")
