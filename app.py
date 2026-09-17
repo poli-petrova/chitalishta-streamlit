@@ -170,7 +170,7 @@ with tab_map:
         """
     )
 
-    fig = px.choropleth_mapbox(
+    fig = px.choropleth_map(
         df_y,
         geojson=geo,          # 28 or 9
         locations=loc_col,    # region_code or macro_region_code
@@ -180,7 +180,7 @@ with tab_map:
         hover_data={"region_code": True, "value": True},
         color_continuous_scale="YlOrRd",
         range_color=(global_min, global_max),  # fixed scale over time
-        mapbox_style="carto-positron",
+        map_style="carto-positron",
         zoom=5.7,
         center={"lat": 42.7, "lon": 25.3},
         opacity=0.75,
@@ -245,7 +245,7 @@ with tab_side:
         for c in hover_cols:
             hover_dict[c] = True
 
-        fig_local = px.choropleth_mapbox(
+        fig_local = px.choropleth_map(
             data,
             geojson=geo,       # same geometry choice
             locations=loc_col,  # same key as main map
@@ -254,7 +254,7 @@ with tab_side:
             hover_name="okrug",
             hover_data=hover_dict,
             color_continuous_scale=color_scale,
-            mapbox_style="carto-positron",
+            map_style="carto-positron",
             zoom=5.7,
             center={"lat": 42.7, "lon": 25.3},
             opacity=0.78,
